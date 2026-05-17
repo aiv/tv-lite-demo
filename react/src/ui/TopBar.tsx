@@ -3,13 +3,26 @@ import React, { useEffect, useRef, useState } from 'react';
 export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata';
 export type Interval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 
-export const PRESETS = [
+const DEFAULT_PRESETS = [
   { label: 'Intel',    value: 'YF:INTC|5m' },
   { label: 'NVIDIA',   value: 'YF:NVDA|5m' },
-  { label: 'Broadcom', value: 'YF:AVGO|5m' },
   { label: 'BTCUSDT',  value: 'BINANCE:BTCUSDT|5m' },
   { label: 'ETHUSDT',  value: 'BINANCE:ETHUSDT|5m' },
 ];
+
+function parsePresets(raw: string) {
+  return raw
+    .split(';')
+    .map(entry => {
+      const eq = entry.indexOf('=');
+      if (eq < 1) return null;
+      return { label: entry.slice(0, eq), value: entry.slice(eq + 1) };
+    })
+    .filter(Boolean) as { label: string; value: string }[];
+}
+
+const _rawPresets = import.meta.env.VITE_PRESETS as string | undefined;
+export const PRESETS = _rawPresets ? parsePresets(_rawPresets) : DEFAULT_PRESETS;
 
 interface Props {
   source: Source;
