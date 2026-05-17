@@ -1,0 +1,14 @@
+services:
+  tv-lite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_RIGHT_PAD_BARS: ${VITE_RIGHT_PAD_BARS:-10}
+        VITE_PRESET_ROTATION_ENABLED: ${VITE_PRESET_ROTATION_ENABLED:-false}
+        VITE_PRESET_ROTATION_INTERVAL: ${VITE_PRESET_ROTATION_INTERVAL:-180}
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
