@@ -7,13 +7,11 @@ interface Props {
   source: Source;
   symbol: string;
   interval: Interval;
-  rightPadBars: number;
   loading?: boolean;
   indicatorOpen: boolean;
   onChangeSource: (v: Source) => void;
   onChangeSymbol: (v: string) => void;
   onChangeInterval: (v: Interval) => void;
-  onChangeRightPad: (v: number) => void;
   onPreset: (preset: string) => void;
   onLoad: () => void;
   onToggleIndicator: () => void;
@@ -59,11 +57,6 @@ export const TopBar: React.FC<Props> = (props) => {
       <button className="top-btn" onClick={props.onLoad} disabled={props.loading}>
         {props.loading ? 'Loading…' : 'Load'}
       </button>
-
-      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>Right padding</label>
-      <input className="top-input" type="number" min={0} max={50} style={{ width: 56 }}
-             value={props.rightPadBars}
-             onChange={e => props.onChangeRightPad(Math.max(0, Math.min(50, Number(e.target.value || 0))))} />
 
       <button className="top-btn" data-role="ind-toggle" onClick={props.onToggleIndicator}>
         Indicators{props.indicatorOpen ? '▲' : '▼'}

@@ -24,8 +24,8 @@ export const ChartContainer: React.FC = () => {
   const emaSeriesRef = useRef<ReturnType<IChartApi['addSeries']> | null>(null);
   const ohlcRef = useRef<Bar[]>([]);
   const [viewData, setViewData] = useState<Bar[] | null>(null);
-  const [rightPadBars, setRightPadBars] = useState(10);
-  const rightPadBarsRef = useRef(10);
+  const rightPadBars = Number(import.meta.env.VITE_RIGHT_PAD_BARS ?? 10);
+  const rightPadBarsRef = useRef(rightPadBars);
 
   const [source, setSource] = useState<Source>('auto');
   const [symbol, setSymbol] = useState('BTCUSDT');
@@ -308,13 +308,11 @@ export const ChartContainer: React.FC = () => {
         source={source}
         symbol={symbol}
         interval={interval}
-        rightPadBars={rightPadBars}
         loading={loading}
         indicatorOpen={indOpen}
         onChangeSource={setSource}
         onChangeSymbol={setSymbol}
         onChangeInterval={setInterval}
-        onChangeRightPad={setRightPadBars}
         onPreset={applyPreset}
         onLoad={() => { reload(); }}
         onToggleIndicator={() => setIndOpen(v => !v)}
