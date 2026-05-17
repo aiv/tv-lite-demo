@@ -39,10 +39,11 @@ export const TopBar: React.FC<Props> = (props) => {
 
       <select className="top-select" defaultValue="" onChange={e => props.onPreset(e.target.value)}>
         <option value="">Presets</option>
-        <option value="BINANCE:BTCUSDT|1d">BTCUSDT 1d</option>
-        <option value="BINANCE:ETHUSDT|1h">ETHUSDT 1h</option>
-        <option value="YF:AAPL|1d">AAPL 1d</option>
-        <option value="YF:TSLA|1d">TSLA 1d</option>
+        <option value="YF:INTC|5m">Intel</option>
+        <option value="YF:NVDA|5m">NVIDIA</option>
+        <option value="YF:AVGO|5m">Broadcom</option>
+        <option value="BINANCE:BTCUSDT|5m">BTCUSDT</option>
+        <option value="BINANCE:ETHUSDT|5m">ETHUSDT</option>
       </select>
 
       <select className="top-select" value={props.interval}
