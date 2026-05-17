@@ -23,7 +23,7 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; backg
 /* debug overlay */
 .debug-overlay { position: fixed; left: 8px; top: 8px; color: #e5e7eb; background: rgba(0,0,0,.35); padding: 4px 6px; border-radius: 4px; font: 12px/1.4 monospace; z-index: 9999; max-width: 40vw; max-height: 40vh; overflow: auto; }
 
-/* ── responsive: < 1920px (HD and below) ────────────────────────── */
+/* ── responsive: < 1920px (HD i mniejsze) ───────────────────────── */
 @media (max-width: 1919px) {
   .ticker-label { font-size: 36px; }
   .top-btn, .top-input, .top-select { font-size: 13px; }
@@ -31,13 +31,14 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; backg
   .panel { font-size: 13px; }
 }
 
-/* ── responsive: < 1280px (smaller laptops / tablets) ───────────── */
-@media (max-width: 1279px) {
-  .ticker-label { font-size: 44px; top: 20px; left: 20px; }
-  .topbar { gap: 6px; }
-  .top-btn { padding: 7px 12px; font-size: 14px; }
-  .top-input, .top-select { height: 34px; font-size: 14px; }
-  .panel { font-size: 14px; padding: 10px 12px; }
-  .panel label { margin: 6px 0; }
-  .tool-btn { width: 40px; height: 40px; font-size: 14px; }
+/* ── responsive: ≤ 1280px (RPi Touch Display 2: 1280×800 i mniejsze) */
+@media (max-width: 1280px) {
+  .ticker-label { font-size: 48px; top: 20px; left: 20px; }
+  .topbar { gap: 8px; top: 12px; }
+  .top-btn { padding: 9px 14px; font-size: 15px; }
+  .top-input, .top-select { height: 38px; font-size: 15px; padding: 0 12px; }
+  .top-input[style] { width: 140px !important; }
+  .panel { font-size: 15px; padding: 12px 14px; }
+  .panel label { margin: 8px 0; gap: 8px; }
+  .tool-btn { width: 44px; height: 44px; font-size: 16px; }
 }
