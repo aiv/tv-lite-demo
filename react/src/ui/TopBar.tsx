@@ -22,7 +22,7 @@ interface Props {
 export const TopBar: React.FC<Props> = (props) => {
   return (
     <div className="topbar">
-      <label style={{ opacity: .75, marginRight: 4 }}>源</label>
+      <label style={{ opacity: .75, marginRight: 4 }}>Source</label>
       <select className="top-select" value={props.source}
               onChange={e => props.onChangeSource(e.target.value as Source)}>
         <option value="auto">Auto</option>
@@ -33,12 +33,12 @@ export const TopBar: React.FC<Props> = (props) => {
         <option value="twelvedata">TwelveData</option>
       </select>
 
-      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>交易对/代码</label>
+      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>Symbol</label>
       <input className="top-input" style={{ width: 120 }} value={props.symbol}
              onChange={e => props.onChangeSymbol(e.target.value.toUpperCase())} />
 
       <select className="top-select" defaultValue="" onChange={e => props.onPreset(e.target.value)}>
-        <option value="">预设</option>
+        <option value="">Presets</option>
         <option value="BINANCE:BTCUSDT|1d">BTCUSDT 1d</option>
         <option value="BINANCE:ETHUSDT|1h">ETHUSDT 1h</option>
         <option value="YF:AAPL|1d">AAPL 1d</option>
@@ -56,16 +56,16 @@ export const TopBar: React.FC<Props> = (props) => {
       </select>
 
       <button className="top-btn" onClick={props.onLoad} disabled={props.loading}>
-        {props.loading ? '加载中…' : '加载'}
+        {props.loading ? 'Loading…' : 'Load'}
       </button>
 
-      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>右侧留白</label>
+      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>Right padding</label>
       <input className="top-input" type="number" min={0} max={50} style={{ width: 56 }}
              value={props.rightPadBars}
              onChange={e => props.onChangeRightPad(Math.max(0, Math.min(50, Number(e.target.value || 0))))} />
 
       <button className="top-btn" data-role="ind-toggle" onClick={props.onToggleIndicator}>
-        指标{props.indicatorOpen ? '▲' : '▼'}
+        Indicators{props.indicatorOpen ? '▲' : '▼'}
       </button>
     </div>
   );
