@@ -24,7 +24,8 @@ export const ChartContainer: React.FC = () => {
   const emaSeriesRef = useRef<ReturnType<IChartApi['addSeries']> | null>(null);
   const ohlcRef = useRef<Bar[]>([]);
   const [viewData, setViewData] = useState<Bar[] | null>(null);
-  const [rightPadBars, setRightPadBars] = useState(2);
+  const [rightPadBars, setRightPadBars] = useState(10);
+  const rightPadBarsRef = useRef(10);
 
   const [source, setSource] = useState<Source>('auto');
   const [symbol, setSymbol] = useState('BTCUSDT');
@@ -45,7 +46,7 @@ export const ChartContainer: React.FC = () => {
       grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
       rightPriceScale: { borderColor: '#334155' },
       crosshair: { mode: 0 },
-      timeScale: { borderColor: '#334155', timeVisible: true, secondsVisible: false, fixRightEdge: true, rightOffset: 2 },
+      timeScale: { borderColor: '#334155', timeVisible: true, secondsVisible: false, rightOffset: 10 },
     });
     chartRef.current = chart;
 
@@ -121,16 +122,28 @@ export const ChartContainer: React.FC = () => {
   }, [interval]);
 
   useEffect(() => {
+    rightPadBarsRef.current = rightPadBars;
     const chart = chartRef.current;
     if (!chart) return;
     // right offset
     chart.timeScale().applyOptions({ rightOffset: rightPadBars });
+    // update visible range if data already loaded
+    const len = ohlcRef.current.length;
+    if (len > 0) {
+      const ts = chart.timeScale();
+      const r = ts.getVisibleLogicalRange();
+      if (r) {
+        const width = r.to - r.from;
+        const newTo = (len - 1) + rightPadBars;
+        ts.setVisibleLogicalRange({ from: newTo - width, to: newTo });
+      }
+    }
   }, [rightPadBars]);
 
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    // clamp right scroll
+    // clamp right scroll — uses ref so always reads latest rightPadBars
     let clampLock = false;
     const clampRightLimit = () => {
       if (clampLock) return;
@@ -139,7 +152,7 @@ export const ChartContainer: React.FC = () => {
       if (!r) return;
       const len = ohlcRef.current.length;
       if (len === 0) return;
-      const maxTo = (len - 1) + rightPadBars;
+      const maxTo = (len - 1) + rightPadBarsRef.current;
       if (r.to > maxTo) {
         clampLock = true;
         const width = r.to - r.from;
@@ -153,7 +166,7 @@ export const ChartContainer: React.FC = () => {
     return () => {
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(clampRightLimit);
     };
-  }, [rightPadBars]);
+  }, []);
 
   // --- Apply loaded data ---
   useEffect(() => {
@@ -201,14 +214,14 @@ export const ChartContainer: React.FC = () => {
     if (!r) return;
     const len = ohlcRef.current.length;
     if (len === 0) return;
-    const maxTo = (len - 1) + rightPadBars;
+    const maxTo = (len - 1) + rightPadBarsRef.current;
     if (r.to > maxTo) {
       const width = r.to - r.from;
       const newTo = maxTo;
       const newFrom = newTo - width;
       ts.setVisibleLogicalRange({ from: newFrom, to: newTo });
     }
-  }, [rightPadBars]);
+  }, []);
 
   const onWsBar = React.useCallback((bar: Bar) => {
     const candle = candleRef.current; if (!candle) return;
