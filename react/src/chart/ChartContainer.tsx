@@ -30,7 +30,7 @@ export const ChartContainer: React.FC = () => {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<Interval>('1d');
   const { data, loading, error, reload } = useKlines({ source, symbol, interval, limit: 800, auto: true });
-  const [showVolume, setShowVolume] = useState(false);
+  const [showVolume, setShowVolume] = useState(true);
   const [showRSI, setShowRSI] = useState(false);
   const [showMACD, setShowMACD] = useState(false);
   const [showSMA, setShowSMA] = useState(true);
