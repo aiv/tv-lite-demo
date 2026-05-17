@@ -1,5 +1,6 @@
-// Minimal static + proxy server without external deps
-// Serves files from project root and provides /api/klines proxy to multiple sources
+// Minimal static + proxy server
+// Serves files from dist/ and provides /api/klines proxy to multiple sources
+require('dotenv').config();
 
 const http = require('http');
 const https = require('https');
