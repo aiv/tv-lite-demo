@@ -278,21 +278,22 @@ export const ChartContainer: React.FC = () => {
     emaSeriesRef.current?.applyOptions({ visible: showEMA });
   }, [showEMA]);
 
-  // Adjust pane stretch: main 0.6, others share 0.4
+  // Adjust pane stretch factors (relative weights)
+  // main=10, volume=2, rsi/macd=4 each
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
     const panes = chart.panes();
     if (panes.length === 0) return;
     const main = panes[0];
-    main.setStretchFactor(1); // will normalize later
-    const activeCount = panes.length - 1; // exclude main
-    if (activeCount <= 0) return;
-    const mainFactor = 0.6;
-    const rest = 0.4;
-    const each = rest / activeCount;
-    main.setStretchFactor(mainFactor);
-    for (let i = 1; i < panes.length; i++) panes[i].setStretchFactor(each);
+    const activeCount = panes.length - 1;
+    if (activeCount <= 0) { main.setStretchFactor(1); return; }
+    main.setStretchFactor(10);
+    for (let i = 1; i < panes.length; i++) {
+      // volume is always moved to pane index 1
+      const isVolume = showVolume && i === 1;
+      panes[i].setStretchFactor(isVolume ? 2 : 4);
+    }
   }, [showVolume, showRSI, showMACD, data]);
 
   // auto-rotation
