@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: #0f172a; color: #e5e7eb; }
 .app-root { height: 100vh; display: flex; flex-direction: column; background: #0f172a; color: #e5e7eb; }
-.header { padding: 10px 12px; border-bottom: 1px solid #334155; font-size: 14px; opacity: .8; }
+.header { padding: 0px 12px; font-size: 14px; opacity: .8; }
 .content { flex: 1; min-height: 0; }
 .chart-host { width: 100%; height: 100%; }
 

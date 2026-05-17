@@ -3,6 +3,14 @@ import React from 'react';
 export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata';
 export type Interval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 
+export const PRESETS = [
+  { label: 'Intel',    value: 'YF:INTC|5m' },
+  { label: 'NVIDIA',   value: 'YF:NVDA|5m' },
+  { label: 'Broadcom', value: 'YF:AVGO|5m' },
+  { label: 'BTCUSDT',  value: 'BINANCE:BTCUSDT|5m' },
+  { label: 'ETHUSDT',  value: 'BINANCE:ETHUSDT|5m' },
+];
+
 interface Props {
   source: Source;
   symbol: string;
@@ -15,6 +23,8 @@ interface Props {
   onPreset: (preset: string) => void;
   onLoad: () => void;
   onToggleIndicator: () => void;
+  autoRotate: boolean;
+  onToggleAutoRotate: () => void;
 }
 
 export const TopBar: React.FC<Props> = (props) => {
@@ -37,11 +47,9 @@ export const TopBar: React.FC<Props> = (props) => {
 
       <select className="top-select" defaultValue="" onChange={e => props.onPreset(e.target.value)}>
         <option value="">Presets</option>
-        <option value="YF:INTC|5m">Intel</option>
-        <option value="YF:NVDA|5m">NVIDIA</option>
-        <option value="YF:AVGO|5m">Broadcom</option>
-        <option value="BINANCE:BTCUSDT|5m">BTCUSDT</option>
-        <option value="BINANCE:ETHUSDT|5m">ETHUSDT</option>
+        {PRESETS.map(p => (
+          <option key={p.value} value={p.value}>{p.label}</option>
+        ))}
       </select>
 
       <select className="top-select" value={props.interval}
@@ -61,6 +69,16 @@ export const TopBar: React.FC<Props> = (props) => {
       <button className="top-btn" data-role="ind-toggle" onClick={props.onToggleIndicator}>
         Indicators{props.indicatorOpen ? '▲' : '▼'}
       </button>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8, cursor: 'pointer', userSelect: 'none', opacity: .85 }}>
+        <input
+          type="checkbox"
+          checked={props.autoRotate}
+          onChange={props.onToggleAutoRotate}
+          style={{ cursor: 'pointer' }}
+        />
+        Auto-rotate
+      </label>
     </div>
   );
 };

@@ -9,7 +9,7 @@ import { useKlines, type Bar } from '../hooks/useKlines';
 import { VolumePane } from '../panes/VolumePane';
 import { RSIPane } from '../panes/RSIPane';
 import { MACDPane } from '../panes/MACDPane';
-import { TopBar, type Source, type Interval } from '../ui/TopBar';
+import { TopBar, PRESETS, type Source, type Interval } from '../ui/TopBar';
 import { IndicatorPanel } from '../ui/IndicatorPanel';
 import { useBinanceWS } from '../hooks/useBinanceWS';
 import { FibTool } from '../tools/FibTool';
@@ -37,6 +37,12 @@ export const ChartContainer: React.FC = () => {
   const [showSMA, setShowSMA] = useState(true);
   const [showEMA, setShowEMA] = useState(true);
   const [indOpen, setIndOpen] = useState(false);
+
+  const presetIdxRef = useRef(0);
+  const rotationIntervalSec = Number(import.meta.env.VITE_PRESET_ROTATION_INTERVAL ?? 180);
+  const [autoRotate, setAutoRotate] = useState(
+    () => import.meta.env.VITE_PRESET_ROTATION_ENABLED === 'true'
+  );
 
   useEffect(() => {
     const el = hostRef.current!;
@@ -289,6 +295,18 @@ export const ChartContainer: React.FC = () => {
     for (let i = 1; i < panes.length; i++) panes[i].setStretchFactor(each);
   }, [showVolume, showRSI, showMACD, data]);
 
+  // auto-rotation
+  useEffect(() => {
+    if (!autoRotate) return;
+    const ms = rotationIntervalSec * 1000;
+    const id = window.setInterval(() => {
+      presetIdxRef.current = (presetIdxRef.current + 1) % PRESETS.length;
+      applyPreset(PRESETS[presetIdxRef.current].value);
+    }, ms);
+    return () => window.clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRotate, rotationIntervalSec]);
+
   // preset handler
   function applyPreset(v: string) {
     if (!v) return;
@@ -316,6 +334,8 @@ export const ChartContainer: React.FC = () => {
         onPreset={applyPreset}
         onLoad={() => { reload(); }}
         onToggleIndicator={() => setIndOpen(v => !v)}
+        autoRotate={autoRotate}
+        onToggleAutoRotate={() => setAutoRotate(v => !v)}
       />
 
       <IndicatorPanel
