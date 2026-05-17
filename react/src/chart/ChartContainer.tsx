@@ -354,6 +354,8 @@ export const ChartContainer: React.FC = () => {
         onClose={() => setIndOpen(false)}
       />
 
+      <div className="ticker-label">{symbol}</div>
+
       <div ref={hostRef} className="chart-host">
         {chartRef.current && paneData && (
           <>
