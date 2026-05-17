@@ -22,3 +22,22 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; backg
 
 /* debug overlay */
 .debug-overlay { position: fixed; left: 8px; top: 8px; color: #e5e7eb; background: rgba(0,0,0,.35); padding: 4px 6px; border-radius: 4px; font: 12px/1.4 monospace; z-index: 9999; max-width: 40vw; max-height: 40vh; overflow: auto; }
+
+/* ── responsive: < 1920px (HD and below) ────────────────────────── */
+@media (max-width: 1919px) {
+  .ticker-label { font-size: 36px; }
+  .top-btn, .top-input, .top-select { font-size: 13px; }
+  .top-input, .top-select { height: 32px; padding: 0 10px; }
+  .panel { font-size: 13px; }
+}
+
+/* ── responsive: < 1280px (smaller laptops / tablets) ───────────── */
+@media (max-width: 1279px) {
+  .ticker-label { font-size: 44px; top: 20px; left: 20px; }
+  .topbar { gap: 6px; }
+  .top-btn { padding: 7px 12px; font-size: 14px; }
+  .top-input, .top-select { height: 34px; font-size: 14px; }
+  .panel { font-size: 14px; padding: 10px 12px; }
+  .panel label { margin: 6px 0; }
+  .tool-btn { width: 40px; height: 40px; font-size: 14px; }
+}
