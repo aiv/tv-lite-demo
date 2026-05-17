@@ -1,0 +1,18 @@
+services:
+  tv-lite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      secrets:
+        - dotenv
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
+
+secrets:
+  dotenv:
+    file: .env

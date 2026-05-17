@@ -65,7 +65,7 @@ When the source is `binance`, the React app also opens a WebSocket stream to upd
 
 ## React App Usage
 
-- Source, Symbol, Interval, Presets: top bar controls (click “加载” to refetch)
+- Source, Symbol, Interval, Presets: top bar controls (click "Load" to refetch)
 - Right Offset: controls right padding (in bars) and clamps right scroll
 - Indicators panel: toggle SMA, EMA, Volume, RSI, MACD
 - Fibonacci tool: use the left toolbar

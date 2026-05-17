@@ -121,10 +121,10 @@ export const FibTool: React.FC<Props> = ({ chart, candle, resetKey }) => {
   }, [extend]);
 
   return (
-    <div className="toolbar-left">
+    <div className="toolbar-left" style={{ display: 'none' }}>
       <button className={`tool-btn${active ? ' active' : ''}`} title="Fib" onClick={() => setActive(v => !v)}>Fib</button>
-      <button className={`tool-btn${extend ? ' active' : ''}`} title="延长" onClick={() => setExtend(v => !v)}>⇔</button>
-      <button className="tool-btn" title="清除" onClick={() => clear()}>✕</button>
+      <button className={`tool-btn${extend ? ' active' : ''}`} title="Extend" onClick={() => setExtend(v => !v)}>⇔</button>
+      <button className="tool-btn" title="Clear" onClick={() => clear()}>✕</button>
     </div>
   );
 };

@@ -1,28 +1,66 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata';
 export type Interval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+
+const DEFAULT_PRESETS = [
+  { label: 'Intel',    value: 'YF:INTC|5m' },
+  { label: 'NVIDIA',   value: 'YF:NVDA|5m' },
+  { label: 'BTCUSDT',  value: 'BINANCE:BTCUSDT|5m' },
+  { label: 'ETHUSDT',  value: 'BINANCE:ETHUSDT|5m' },
+];
+
+function parsePresets(raw: string) {
+  return raw
+    .split(';')
+    .map(entry => {
+      const eq = entry.indexOf('=');
+      if (eq < 1) return null;
+      return { label: entry.slice(0, eq), value: entry.slice(eq + 1) };
+    })
+    .filter(Boolean) as { label: string; value: string }[];
+}
+
+const _rawPresets = import.meta.env.VITE_PRESETS as string | undefined;
+export const PRESETS = _rawPresets ? parsePresets(_rawPresets) : DEFAULT_PRESETS;
 
 interface Props {
   source: Source;
   symbol: string;
   interval: Interval;
-  rightPadBars: number;
   loading?: boolean;
   indicatorOpen: boolean;
   onChangeSource: (v: Source) => void;
   onChangeSymbol: (v: string) => void;
   onChangeInterval: (v: Interval) => void;
-  onChangeRightPad: (v: number) => void;
   onPreset: (preset: string) => void;
   onLoad: () => void;
   onToggleIndicator: () => void;
+  autoRotate: boolean;
+  onToggleAutoRotate: () => void;
 }
 
 export const TopBar: React.FC<Props> = (props) => {
+  const [visible, setVisible] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const show = () => {
+      setVisible(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setVisible(false), 10_000);
+    };
+    show();
+    document.addEventListener('mousemove', show);
+    return () => {
+      document.removeEventListener('mousemove', show);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   return (
-    <div className="topbar">
-      <label style={{ opacity: .75, marginRight: 4 }}>源</label>
+    <div className="topbar" style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? undefined : 'none' }}>
+      <label style={{ opacity: .75, marginRight: 4 }}>Source</label>
       <select className="top-select" value={props.source}
               onChange={e => props.onChangeSource(e.target.value as Source)}>
         <option value="auto">Auto</option>
@@ -33,16 +71,15 @@ export const TopBar: React.FC<Props> = (props) => {
         <option value="twelvedata">TwelveData</option>
       </select>
 
-      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>交易对/代码</label>
+      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>Symbol</label>
       <input className="top-input" style={{ width: 120 }} value={props.symbol}
              onChange={e => props.onChangeSymbol(e.target.value.toUpperCase())} />
 
       <select className="top-select" defaultValue="" onChange={e => props.onPreset(e.target.value)}>
-        <option value="">预设</option>
-        <option value="BINANCE:BTCUSDT|1d">BTCUSDT 1d</option>
-        <option value="BINANCE:ETHUSDT|1h">ETHUSDT 1h</option>
-        <option value="YF:AAPL|1d">AAPL 1d</option>
-        <option value="YF:TSLA|1d">TSLA 1d</option>
+        <option value="">Presets</option>
+        {PRESETS.map(p => (
+          <option key={p.value} value={p.value}>{p.label}</option>
+        ))}
       </select>
 
       <select className="top-select" value={props.interval}
@@ -56,17 +93,22 @@ export const TopBar: React.FC<Props> = (props) => {
       </select>
 
       <button className="top-btn" onClick={props.onLoad} disabled={props.loading}>
-        {props.loading ? '加载中…' : '加载'}
+        {props.loading ? 'Loading…' : 'Load'}
       </button>
-
-      <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>右侧留白</label>
-      <input className="top-input" type="number" min={0} max={50} style={{ width: 56 }}
-             value={props.rightPadBars}
-             onChange={e => props.onChangeRightPad(Math.max(0, Math.min(50, Number(e.target.value || 0))))} />
 
       <button className="top-btn" data-role="ind-toggle" onClick={props.onToggleIndicator}>
-        指标{props.indicatorOpen ? '▲' : '▼'}
+        Indicators{props.indicatorOpen ? '▲' : '▼'}
       </button>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8, cursor: 'pointer', userSelect: 'none', opacity: .85 }}>
+        <input
+          type="checkbox"
+          checked={props.autoRotate}
+          onChange={props.onToggleAutoRotate}
+          style={{ cursor: 'pointer' }}
+        />
+        Auto-rotate
+      </label>
     </div>
   );
 };

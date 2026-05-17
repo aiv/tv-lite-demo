@@ -1,5 +1,6 @@
-// Minimal static + proxy server without external deps
-// Serves files from project root and provides /api/klines proxy to multiple sources
+// Minimal static + proxy server
+// Serves files from dist/ and provides /api/klines proxy to multiple sources
+require('dotenv').config();
 
 const http = require('http');
 const https = require('https');
@@ -10,7 +11,7 @@ const { URL } = require('url');
 
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = +(process.env.PORT || 3000);
-const ROOT = path.resolve(__dirname);
+const ROOT = path.resolve(__dirname, 'dist');
 const CACHE_DIR = path.join(__dirname, '.cache');
 const TTL_MS = 5 * 60 * 1000; // 5 minutes
 

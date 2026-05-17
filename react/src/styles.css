@@ -1,14 +1,19 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: #0f172a; color: #e5e7eb; }
 .app-root { height: 100vh; display: flex; flex-direction: column; background: #0f172a; color: #e5e7eb; }
-.header { padding: 10px 12px; border-bottom: 1px solid #334155; font-size: 14px; opacity: .8; }
+.header { padding: 0px 12px; font-size: 14px; opacity: .8; }
 .content { flex: 1; min-height: 0; }
 .chart-host { width: 100%; height: 100%; }
 
 /* match the classic look */
-.topbar { position: fixed; left: 50%; top: 8px; transform: translateX(-50%); display: flex; gap: 8px; z-index: 1000; align-items: center; }
+.topbar { position: fixed; left: 50%; top: 8px; transform: translateX(-50%); display: flex; gap: 8px; z-index: 1000; align-items: center; transition: opacity 0.4s ease; }
 .top-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid #475569; background: #1f2937; color: #e5e7eb; cursor: pointer; font-size: 12px; }
 .top-input, .top-select { height: 30px; border-radius: 6px; border: 1px solid #475569; background: #0b1220; color: #e5e7eb; padding: 0 8px; font-size: 12px; }
 .panel { position: fixed; top: 48px; left: 50%; transform: translateX(-50%); background: #1f2937; border: 1px solid #475569; border-radius: 8px; padding: 8px 10px; z-index: 1000; color: #e5e7eb; font-size: 12px; display: none; box-shadow: 0 6px 16px rgba(0,0,0,.3); }
 .panel label { display: flex; align-items: center; gap: 6px; margin: 4px 0; cursor: pointer; }
+
+/* ticker label */
+.ticker-label { position: fixed; left: 16px; top: 16px; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 0.03em; z-index: 500; pointer-events: none; line-height: 1; }
 
 /* left toolbar */
 .toolbar-left { position: fixed; left: 10px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
@@ -17,3 +22,23 @@
 
 /* debug overlay */
 .debug-overlay { position: fixed; left: 8px; top: 8px; color: #e5e7eb; background: rgba(0,0,0,.35); padding: 4px 6px; border-radius: 4px; font: 12px/1.4 monospace; z-index: 9999; max-width: 40vw; max-height: 40vh; overflow: auto; }
+
+/* ── responsive: < 1920px (HD i mniejsze) ───────────────────────── */
+@media (max-width: 1919px) {
+  .ticker-label { font-size: 36px; }
+  .top-btn, .top-input, .top-select { font-size: 13px; }
+  .top-input, .top-select { height: 32px; padding: 0 10px; }
+  .panel { font-size: 13px; }
+}
+
+/* ── responsive: ≤ 1280px (RPi Touch Display 2: 1280×800 i mniejsze) */
+@media (max-width: 1280px) {
+  .ticker-label { font-size: 48px; top: 20px; left: 20px; }
+  .topbar { gap: 8px; top: 12px; }
+  .top-btn { padding: 9px 14px; font-size: 15px; }
+  .top-input, .top-select { height: 38px; font-size: 15px; padding: 0 12px; }
+  .top-input[style] { width: 140px !important; }
+  .panel { font-size: 15px; padding: 12px 14px; }
+  .panel label { margin: 8px 0; gap: 8px; }
+  .tool-btn { width: 44px; height: 44px; font-size: 16px; }
+}

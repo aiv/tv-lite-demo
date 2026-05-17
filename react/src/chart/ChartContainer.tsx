@@ -9,7 +9,7 @@ import { useKlines, type Bar } from '../hooks/useKlines';
 import { VolumePane } from '../panes/VolumePane';
 import { RSIPane } from '../panes/RSIPane';
 import { MACDPane } from '../panes/MACDPane';
-import { TopBar, type Source, type Interval } from '../ui/TopBar';
+import { TopBar, PRESETS, type Source, type Interval } from '../ui/TopBar';
 import { IndicatorPanel } from '../ui/IndicatorPanel';
 import { useBinanceWS } from '../hooks/useBinanceWS';
 import { FibTool } from '../tools/FibTool';
@@ -24,18 +24,34 @@ export const ChartContainer: React.FC = () => {
   const emaSeriesRef = useRef<ReturnType<IChartApi['addSeries']> | null>(null);
   const ohlcRef = useRef<Bar[]>([]);
   const [viewData, setViewData] = useState<Bar[] | null>(null);
-  const [rightPadBars, setRightPadBars] = useState(2);
+  const rightPadBars = Number(import.meta.env.VITE_RIGHT_PAD_BARS ?? 10);
+  const rightPadBarsRef = useRef(rightPadBars);
 
-  const [source, setSource] = useState<Source>('auto');
-  const [symbol, setSymbol] = useState('BTCUSDT');
-  const [interval, setInterval] = useState<Interval>('1d');
+  const [source, setSource] = useState<Source>(() => {
+    const [ns] = (PRESETS[0]?.value ?? '').split('|');
+    const [provider] = ns.split(':');
+    return provider === 'BINANCE' ? 'binance' : provider === 'YF' ? 'yahoo' : 'auto';
+  });
+  const [symbol, setSymbol] = useState<string>(() => {
+    const [ns] = (PRESETS[0]?.value ?? '').split('|');
+    return ns.split(':')[1] ?? 'BTCUSDT';
+  });
+  const [interval, setInterval] = useState<Interval>(() => {
+    return ((PRESETS[0]?.value ?? '').split('|')[1] as Interval) || '1d';
+  });
   const { data, loading, error, reload } = useKlines({ source, symbol, interval, limit: 800, auto: true });
-  const [showVolume, setShowVolume] = useState(false);
+  const [showVolume, setShowVolume] = useState(true);
   const [showRSI, setShowRSI] = useState(false);
   const [showMACD, setShowMACD] = useState(false);
   const [showSMA, setShowSMA] = useState(true);
   const [showEMA, setShowEMA] = useState(true);
   const [indOpen, setIndOpen] = useState(false);
+
+  const presetIdxRef = useRef(0);
+  const rotationIntervalSec = Number(import.meta.env.VITE_PRESET_ROTATION_INTERVAL ?? 180);
+  const [autoRotate, setAutoRotate] = useState(
+    () => import.meta.env.VITE_PRESET_ROTATION_ENABLED === 'true'
+  );
 
   useEffect(() => {
     const el = hostRef.current!;
@@ -45,7 +61,7 @@ export const ChartContainer: React.FC = () => {
       grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
       rightPriceScale: { borderColor: '#334155' },
       crosshair: { mode: 0 },
-      timeScale: { borderColor: '#334155', timeVisible: true, secondsVisible: false, fixRightEdge: true, rightOffset: 2 },
+      timeScale: { borderColor: '#334155', timeVisible: true, secondsVisible: false, rightOffset: 10 },
     });
     chartRef.current = chart;
 
@@ -121,16 +137,28 @@ export const ChartContainer: React.FC = () => {
   }, [interval]);
 
   useEffect(() => {
+    rightPadBarsRef.current = rightPadBars;
     const chart = chartRef.current;
     if (!chart) return;
     // right offset
     chart.timeScale().applyOptions({ rightOffset: rightPadBars });
+    // update visible range if data already loaded
+    const len = ohlcRef.current.length;
+    if (len > 0) {
+      const ts = chart.timeScale();
+      const r = ts.getVisibleLogicalRange();
+      if (r) {
+        const width = r.to - r.from;
+        const newTo = (len - 1) + rightPadBars;
+        ts.setVisibleLogicalRange({ from: newTo - width, to: newTo });
+      }
+    }
   }, [rightPadBars]);
 
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    // clamp right scroll
+    // clamp right scroll — uses ref so always reads latest rightPadBars
     let clampLock = false;
     const clampRightLimit = () => {
       if (clampLock) return;
@@ -139,7 +167,7 @@ export const ChartContainer: React.FC = () => {
       if (!r) return;
       const len = ohlcRef.current.length;
       if (len === 0) return;
-      const maxTo = (len - 1) + rightPadBars;
+      const maxTo = (len - 1) + rightPadBarsRef.current;
       if (r.to > maxTo) {
         clampLock = true;
         const width = r.to - r.from;
@@ -153,7 +181,7 @@ export const ChartContainer: React.FC = () => {
     return () => {
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(clampRightLimit);
     };
-  }, [rightPadBars]);
+  }, []);
 
   // --- Apply loaded data ---
   useEffect(() => {
@@ -201,14 +229,14 @@ export const ChartContainer: React.FC = () => {
     if (!r) return;
     const len = ohlcRef.current.length;
     if (len === 0) return;
-    const maxTo = (len - 1) + rightPadBars;
+    const maxTo = (len - 1) + rightPadBarsRef.current;
     if (r.to > maxTo) {
       const width = r.to - r.from;
       const newTo = maxTo;
       const newFrom = newTo - width;
       ts.setVisibleLogicalRange({ from: newFrom, to: newTo });
     }
-  }, [rightPadBars]);
+  }, []);
 
   const onWsBar = React.useCallback((bar: Bar) => {
     const candle = candleRef.current; if (!candle) return;
@@ -259,22 +287,35 @@ export const ChartContainer: React.FC = () => {
     emaSeriesRef.current?.applyOptions({ visible: showEMA });
   }, [showEMA]);
 
-  // Adjust pane stretch: main 0.6, others share 0.4
+  // Adjust pane stretch factors (relative weights)
+  // main=10, volume=2, rsi/macd=4 each
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
     const panes = chart.panes();
     if (panes.length === 0) return;
     const main = panes[0];
-    main.setStretchFactor(1); // will normalize later
-    const activeCount = panes.length - 1; // exclude main
-    if (activeCount <= 0) return;
-    const mainFactor = 0.6;
-    const rest = 0.4;
-    const each = rest / activeCount;
-    main.setStretchFactor(mainFactor);
-    for (let i = 1; i < panes.length; i++) panes[i].setStretchFactor(each);
+    const activeCount = panes.length - 1;
+    if (activeCount <= 0) { main.setStretchFactor(1); return; }
+    main.setStretchFactor(10);
+    for (let i = 1; i < panes.length; i++) {
+      // volume is always moved to pane index 1
+      const isVolume = showVolume && i === 1;
+      panes[i].setStretchFactor(isVolume ? 2 : 4);
+    }
   }, [showVolume, showRSI, showMACD, data]);
+
+  // auto-rotation
+  useEffect(() => {
+    if (!autoRotate) return;
+    const ms = rotationIntervalSec * 1000;
+    const id = window.setInterval(() => {
+      presetIdxRef.current = (presetIdxRef.current + 1) % PRESETS.length;
+      applyPreset(PRESETS[presetIdxRef.current].value);
+    }, ms);
+    return () => window.clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRotate, rotationIntervalSec]);
 
   // preset handler
   function applyPreset(v: string) {
@@ -295,16 +336,16 @@ export const ChartContainer: React.FC = () => {
         source={source}
         symbol={symbol}
         interval={interval}
-        rightPadBars={rightPadBars}
         loading={loading}
         indicatorOpen={indOpen}
         onChangeSource={setSource}
         onChangeSymbol={setSymbol}
         onChangeInterval={setInterval}
-        onChangeRightPad={setRightPadBars}
         onPreset={applyPreset}
         onLoad={() => { reload(); }}
         onToggleIndicator={() => setIndOpen(v => !v)}
+        autoRotate={autoRotate}
+        onToggleAutoRotate={() => setAutoRotate(v => !v)}
       />
 
       <IndicatorPanel
@@ -321,6 +362,8 @@ export const ChartContainer: React.FC = () => {
         onChangeMACD={setShowMACD}
         onClose={() => setIndOpen(false)}
       />
+
+      <div className="ticker-label">{symbol}</div>
 
       <div ref={hostRef} className="chart-host">
         {chartRef.current && paneData && (

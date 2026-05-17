@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 // and proxy API calls to the existing Node server at :3000.
 export default defineConfig({
   root: __dirname,
+  envDir: '..',
   plugins: [react()],
   server: {
     port: 5173,
@@ -17,7 +18,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: '../dist',
     emptyOutDir: true,
   },
 });

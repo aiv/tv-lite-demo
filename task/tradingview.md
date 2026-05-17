@@ -1,37 +1,37 @@
-👌 好，我帮你把前面的内容 完整整合 成一个「任务清单 + 最简可运行 index.html 示例」。你直接复制下去，就可以一步步交给 Codex 或自己运行。
+Here is a complete, integrated **task checklist + minimal runnable index.html** that you can copy and hand off to Codex or run yourself.
 
 ⸻
 
-📋 TradingView-lite 部署任务清单（4×A6000 服务器）
+## 📋 TradingView-lite Deployment Checklist (4×A6000 server)
 
-任务 1：准备环境
-	•	更新依赖：
+### Task 1: Prepare environment
+- Update dependencies:
 
 sudo apt update && sudo apt install -y git curl wget build-essential
 
 
-	•	安装 Node.js 20 LTS：
+- Install Node.js 20 LTS:
 
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
 
-	•	验证：
+- Verify:
 
-node -v   # 应显示 v20.x
+node -v   # should show v20.x
 npm -v
 
 
 
 ⸻
 
-任务 2：创建项目目录
-	•	新建目录并进入：
+### Task 2: Create project directory
+- Create and enter directory:
 
 mkdir ~/tv-lite-demo && cd ~/tv-lite-demo
 
 
-	•	初始化项目：
+- Initialise project:
 
 npm init -y
 
@@ -39,13 +39,13 @@ npm init -y
 
 ⸻
 
-任务 3：安装本地服务器
-	•	安装 lite-server：
+### Task 3: Install local server
+- Install lite-server:
 
 npm install lite-server --save-dev
 
 
-	•	修改 package.json → 在 "scripts" 部分加入：
+- Edit `package.json` → add to the `"scripts"` section:
 
 "scripts": {
   "start": "lite-server"
@@ -55,18 +55,18 @@ npm install lite-server --save-dev
 
 ⸻
 
-任务 4：创建 Demo 网页
-	•	在项目根目录创建 index.html
-	•	复制下面的内容（可直接运行，包含 K线 + MA/EMA + RSI + MACD + 斐波那契回调）：
+### Task 4: Create the demo page
+- Create `index.html` in the project root.
+- Copy the content below (ready to run; includes candlesticks + MA/EMA + RSI + MACD + Fibonacci retracement):
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>TradingView-lite Demo</title>
-  <!-- TradingView 官方开源图表 -->
+  <!-- TradingView official open-source chart -->
   <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-  <!-- technicalindicators 指标库 -->
+  <!-- technicalindicators library -->
   <script src="https://cdn.jsdelivr.net/npm/technicalindicators@latest/dist/browser.js"></script>
   <style>
     body { margin: 0; background: #0f172a; color: #e5e7eb; font-family: sans-serif; }
@@ -75,13 +75,13 @@ npm install lite-server --save-dev
   </style>
 </head>
 <body>
-  <h2 style="text-align:center">📈 TradingView-lite 示例</h2>
+  <h2 style="text-align:center">📈 TradingView-lite Demo</h2>
   <div id="chart" class="chart"></div>
   <div id="rsi" class="subchart"></div>
   <div id="macd" class="subchart"></div>
 
 <script>
-  // ---------- 示例数据（随机生成 OHLC） ----------
+  // ---------- Sample data (randomly generated OHLC) ----------
   function genOHLC(n=200, start=100) {
     const out=[]; let t = Math.floor(Date.now()/1000) - n*86400; let price=start;
     for(let i=0;i<n;i++){
@@ -96,7 +96,7 @@ npm install lite-server --save-dev
   const ohlc=genOHLC();
   const closes=ohlc.map(d=>d.close);
 
-  // ---------- 主图 (K线) ----------
+  // ---------- Main chart (candlesticks) ----------
   const chart=LightweightCharts.createChart(document.getElementById('chart'),{layout:{background:{color:'#0f172a'}, textColor:'#eee'}, grid:{vertLines:{color:'#1e293b'}, horzLines:{color:'#1e293b'}}, crosshair:{mode:0}, rightPriceScale:{borderColor:'#334155'}, timeScale:{borderColor:'#334155'}});
   const candleSeries=chart.addCandlestickSeries();
   candleSeries.setData(ohlc);
@@ -132,42 +132,42 @@ npm install lite-server --save-dev
 
 ⸻
 
-任务 5：启动服务
-	•	启动：
+### Task 5: Start the server
+- Start:
 
 npm start
 
 
-	•	默认端口：http://localhost:3000
+- Default port: http://localhost:3000
 
 ⸻
 
-任务 6：远程访问设置
-	•	开放端口：
+### Task 6: Remote access setup
+- Open port:
 
 sudo ufw allow 3000/tcp
 
 
-	•	查看公网 IP：
+- Get public IP:
 
 curl ifconfig.me
 
 
-	•	浏览器访问：
+- Open in browser:
 
-http://<你的服务器公网IP>:3000
+http://<your-server-public-ip>:3000
 
 
 
 ⸻
 
-任务 7：（可选）后台常驻
-	•	安装 pm2：
+### Task 7: (Optional) Run as background service
+- Install pm2:
 
 npm install -g pm2
 
 
-	•	启动并保存：
+- Start and save:
 
 pm2 start node_modules/.bin/lite-server --name tv-lite
 pm2 save
@@ -177,11 +177,11 @@ pm2 startup
 
 ⸻
 
-✅ 执行完以上步骤，你就能在浏览器里看到一个简化版的 TradingView：
-	•	主图：K线 + SMA/EMA
-	•	子图：RSI / MACD
-	•	斐波那契可以后续加交互绘制逻辑（technicalindicators 不直接提供 Fib，需要自己计算区间高低点并画线）。
+✅ After completing all steps above, you will see a simplified TradingView in your browser:
+	•	Main chart: candlesticks + SMA/EMA
+	•	Sub-panes: RSI / MACD
+	•	Fibonacci: add interactive drawing logic as needed (technicalindicators does not provide Fib directly; calculate the range high/low and draw lines manually).
 
 ⸻
 
-要不要我帮你在这个 index.html 里 补上斐波那契回调绘制工具（比如鼠标拖拽选择区间，自动画 Fib 线）？
+Would you like me to add a Fibonacci retracement drawing tool to this index.html (e.g., drag to select a range and automatically draw Fib lines)?
