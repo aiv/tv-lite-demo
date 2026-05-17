@@ -27,9 +27,18 @@ export const ChartContainer: React.FC = () => {
   const rightPadBars = Number(import.meta.env.VITE_RIGHT_PAD_BARS ?? 10);
   const rightPadBarsRef = useRef(rightPadBars);
 
-  const [source, setSource] = useState<Source>('auto');
-  const [symbol, setSymbol] = useState('BTCUSDT');
-  const [interval, setInterval] = useState<Interval>('1d');
+  const [source, setSource] = useState<Source>(() => {
+    const [ns] = (PRESETS[0]?.value ?? '').split('|');
+    const [provider] = ns.split(':');
+    return provider === 'BINANCE' ? 'binance' : provider === 'YF' ? 'yahoo' : 'auto';
+  });
+  const [symbol, setSymbol] = useState<string>(() => {
+    const [ns] = (PRESETS[0]?.value ?? '').split('|');
+    return ns.split(':')[1] ?? 'BTCUSDT';
+  });
+  const [interval, setInterval] = useState<Interval>(() => {
+    return ((PRESETS[0]?.value ?? '').split('|')[1] as Interval) || '1d';
+  });
   const { data, loading, error, reload } = useKlines({ source, symbol, interval, limit: 800, auto: true });
   const [showVolume, setShowVolume] = useState(true);
   const [showRSI, setShowRSI] = useState(false);
