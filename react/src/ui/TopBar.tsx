@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata';
 export type Interval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
@@ -28,8 +28,25 @@ interface Props {
 }
 
 export const TopBar: React.FC<Props> = (props) => {
+  const [visible, setVisible] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const show = () => {
+      setVisible(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setVisible(false), 10_000);
+    };
+    show();
+    document.addEventListener('mousemove', show);
+    return () => {
+      document.removeEventListener('mousemove', show);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   return (
-    <div className="topbar">
+    <div className="topbar" style={{ opacity: visible ? 1 : 0, pointerEvents: visible ? undefined : 'none' }}>
       <label style={{ opacity: .75, marginRight: 4 }}>Source</label>
       <select className="top-select" value={props.source}
               onChange={e => props.onChangeSource(e.target.value as Source)}>
