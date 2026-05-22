@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createChart,
   type IChartApi,
+  type MouseEventParams,
   CandlestickSeries,
   LineSeries,
 } from 'lightweight-charts';
@@ -47,6 +48,10 @@ export const ChartContainer: React.FC = () => {
   const [showSMA, setShowSMA] = useState(true);
   const [showEMA, setShowEMA] = useState(true);
   const [indOpen, setIndOpen] = useState(false);
+
+  type LegendBar = { time: number; open: number; high: number; low: number; close: number };
+  const [legendData, setLegendData] = useState<LegendBar | null>(null);
+  const formatLegendDate = (ts: number) => new Date(ts * 1000).toISOString().slice(0, 10);
 
   const presetIdxRef = useRef(0);
   const rotationIntervalSec = Number(import.meta.env.VITE_PRESET_ROTATION_INTERVAL ?? 180);
@@ -101,6 +106,27 @@ export const ChartContainer: React.FC = () => {
     closeLineRef.current = closeLine;
     smaSeriesRef.current = smaSeries;
     emaSeriesRef.current = emaSeries;
+
+    // --- Legend ---
+    const updateLegend = (param: MouseEventParams) => {
+      const validCrosshair =
+        param !== undefined &&
+        param.time !== undefined &&
+        param.point !== undefined &&
+        param.point.x >= 0 &&
+        param.point.y >= 0;
+      let bar: LegendBar | undefined;
+      if (validCrosshair) {
+        bar = param.seriesData.get(candleSeries) as LegendBar | undefined;
+      } else {
+        bar = candleSeries.dataByIndex(Number.MAX_SAFE_INTEGER, -1) as LegendBar | undefined;
+      }
+      if (bar) setLegendData(bar);
+    };
+    chart.subscribeCrosshairMove(updateLegend);
+    // show last bar immediately
+    const initBar = candleSeries.dataByIndex(Number.MAX_SAFE_INTEGER, -1) as LegendBar | undefined;
+    if (initBar) setLegendData(initBar);
 
     // Resize handling
     const ro = new ResizeObserver(() => {
@@ -201,6 +227,9 @@ export const ChartContainer: React.FC = () => {
     const closes = data.map(d => d.close);
     candle.setData(data);
     closeLine.setData(data.map(d => ({ time: d.time, value: d.close })));
+    // update legend to last bar
+    const lastBar = data[data.length - 1];
+    if (lastBar) setLegendData(lastBar);
 
     const sma20 = (function(values: number[]) { return (function(v:number[],p:number){const out:number[]=[];let s=0;for(let i=0;i<v.length;i++){s+=v[i];if(i>=p)s-=v[i-p];if(i>=p-1)out.push(s/p);}return out;})(values,20); })(closes);
     const ema50 = (function(values: number[]){const k=2/(50+1);const out:number[]=[];let prev=values[0]??0;for(let i=0;i<values.length;i++){if(i===0){out.push(prev);}else{prev=values[i]*k+prev*(1-k);out.push(prev);}}return out.slice(50-1);} )(closes);
@@ -274,6 +303,7 @@ export const ChartContainer: React.FC = () => {
     }
     // trigger UI re-render for pane components
     setViewData([...arr]);
+    setLegendData(bar);
     // keep right clamp
     clampNow();
   }, [clampNow]);
@@ -378,9 +408,19 @@ export const ChartContainer: React.FC = () => {
         </div>
       )}
 
-      <div className="ticker-label">{symbol}</div>
-
       <div ref={hostRef} className="chart-host">
+        {legendData && (
+          <div className="chart-legend">
+            <div className="chart-legend__symbol">{symbol}</div>
+            <div className="chart-legend__ohlc">
+              <span>O <b>{legendData.open.toFixed(2)}</b></span>
+              <span>H <b>{legendData.high.toFixed(2)}</b></span>
+              <span>L <b>{legendData.low.toFixed(2)}</b></span>
+              <span>C <b>{legendData.close.toFixed(2)}</b></span>
+            </div>
+            <div className="chart-legend__date">{formatLegendDate(legendData.time)}</div>
+          </div>
+        )}
         {chartRef.current && paneData && (
           <>
             <VolumePane chart={chartRef.current} data={paneData} visible={showVolume} />
