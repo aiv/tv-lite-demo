@@ -12,6 +12,7 @@ import { MACDPane } from '../panes/MACDPane';
 import { TopBar, PRESETS, type Source, type Interval } from '../ui/TopBar';
 import { IndicatorPanel } from '../ui/IndicatorPanel';
 import { useBinanceWS } from '../hooks/useBinanceWS';
+import { useBackendHealth } from '../hooks/useBackendHealth';
 import { FibTool } from '../tools/FibTool';
 
 export const ChartContainer: React.FC = () => {
@@ -277,7 +278,10 @@ export const ChartContainer: React.FC = () => {
     clampNow();
   }, [clampNow]);
 
-  useBinanceWS({ enabled: source === 'binance', symbol, interval, onBar: onWsBar });
+  const { connected: wsConnected } = useBinanceWS({ enabled: source === 'binance', symbol, interval, onBar: onWsBar });
+  const wsDisconnected = source === 'binance' && !wsConnected;
+  const { online: backendOnline } = useBackendHealth();
+  const backendOffline = backendOnline === false;
 
   // toggle visibility for SMA/EMA
   useEffect(() => {
@@ -362,6 +366,17 @@ export const ChartContainer: React.FC = () => {
         onChangeMACD={setShowMACD}
         onClose={() => setIndOpen(false)}
       />
+
+      {backendOffline && (
+        <div className="connection-banner">
+          ⚠ Backend offline — chart data unavailable
+        </div>
+      )}
+      {!backendOffline && wsDisconnected && (
+        <div className="connection-banner">
+          ⚠ No connection to data stream — chart updates paused
+        </div>
+      )}
 
       <div className="ticker-label">{symbol}</div>
 

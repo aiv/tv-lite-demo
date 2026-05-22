@@ -9,39 +9,67 @@ export interface UseBinanceWSParams {
 
 export function useBinanceWS({ enabled, symbol, interval, onBar }: UseBinanceWSParams) {
   const wsRef = React.useRef<WebSocket | null>(null);
+  const retryTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [connected, setConnected] = React.useState(false);
 
   React.useEffect(() => {
     if (!enabled) return;
     if (!symbol || !interval) return;
-    const url = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval.toLowerCase()}`;
-    let ws: WebSocket | null = null;
-    try {
-      ws = new WebSocket(url);
-      wsRef.current = ws;
-      ws.onmessage = (ev: MessageEvent) => {
-        try {
-          const msg = JSON.parse(ev.data as string);
-          const k = msg?.k;
-          if (!k) return;
-          if (localStorage.getItem('debug') === '1') {
-            console.log('[useBinanceWS] raw kline', { symbol, interval, raw: k });
-          }
-          const bar = {
-            time: Math.floor(k.t / 1000),
-            open: +k.o,
-            high: +k.h,
-            low: +k.l,
-            close: +k.c,
-            volume: +k.v,
-          };
-          onBar(bar);
-        } catch {}
-      };
-    } catch {}
+
+    let destroyed = false;
+    let retryDelay = 2000;
+
+    function connect() {
+      if (destroyed) return;
+      const url = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval.toLowerCase()}`;
+      try {
+        const ws = new WebSocket(url);
+        wsRef.current = ws;
+        ws.onopen = () => {
+          if (destroyed) { ws.close(); return; }
+          setConnected(true);
+          retryDelay = 2000;
+        };
+        ws.onclose = () => {
+          if (destroyed) return;
+          setConnected(false);
+          retryTimerRef.current = setTimeout(connect, retryDelay);
+          retryDelay = Math.min(retryDelay * 2, 30000);
+        };
+        ws.onmessage = (ev: MessageEvent) => {
+          if (destroyed) return;
+          try {
+            const msg = JSON.parse(ev.data as string);
+            const k = msg?.k;
+            if (!k) return;
+            if (localStorage.getItem('debug') === '1') {
+              console.log('[useBinanceWS] raw kline', { symbol, interval, raw: k });
+            }
+            const bar = {
+              time: Math.floor(k.t / 1000),
+              open: +k.o,
+              high: +k.h,
+              low: +k.l,
+              close: +k.c,
+              volume: +k.v,
+            };
+            onBar(bar);
+          } catch {}
+        };
+      } catch {}
+    }
+
+    connect();
+
     return () => {
+      destroyed = true;
+      if (retryTimerRef.current) { clearTimeout(retryTimerRef.current); retryTimerRef.current = null; }
       try { wsRef.current?.close(); } catch {}
       wsRef.current = null;
+      // intentionally NOT resetting `connected` here — avoids banner flash on symbol/interval change
     };
   }, [enabled, symbol, interval, onBar]);
+
+  return { connected };
 }
 

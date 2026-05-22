@@ -20,6 +20,9 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; backg
 .tool-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #475569; background: #1f2937; color: #e5e7eb; cursor: pointer; display: grid; place-items: center; font-size: 12px; }
 .tool-btn.active { background: #334155; }
 
+/* connection lost banner */
+.connection-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 2000; background: #7f1d1d; color: #fca5a5; text-align: center; padding: 6px 12px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border-bottom: 1px solid #ef4444; }
+
 /* debug overlay */
 .debug-overlay { position: fixed; left: 8px; top: 8px; color: #e5e7eb; background: rgba(0,0,0,.35); padding: 4px 6px; border-radius: 4px; font: 12px/1.4 monospace; z-index: 9999; max-width: 40vw; max-height: 40vh; overflow: auto; }
 

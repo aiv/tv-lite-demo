@@ -18,7 +18,7 @@ migrating to React with v5 of Lightweight Charts.
 - Fibonacci retracement tool (two‑point): extend toggle, clear, and axis price labels
 - Realtime streaming via Binance WebSocket (when source is `binance`)
 - Range handling: sensible initial window per interval, preserve/restore visible logical range, clamp right edge
-- Debug overlay (`?debug=1`) capturing errors and rejections
+- Debug overlay (`?debug=1` or `localStorage.setItem("debug","1")`) capturing errors and rejections
 
 ## Requirements
 
@@ -98,7 +98,7 @@ or adapt `server.js` to serve that directory if you prefer a single server.
 
 ## Troubleshooting
 
-- Nothing shows on the chart: open `/?debug=1` to see error logs. Ensure `npm start` is running and that `/api/klines` responds.
+- Nothing shows on the chart: open `/?debug=1` to see error logs, or enable persistently via the browser console: `localStorage.setItem("debug","1")`. Ensure `npm start` is running and that `/api/klines` responds.
 - Cross‑device access: if using Tailscale, use the Tailscale IP/hostname on port 5173. Otherwise, use SSH port‑forwarding: `ssh -N -L 5173:127.0.0.1:5173 user@host`.
 - Public exposure: Vite dev server is not meant for the public internet. Use it inside a trusted network or build and serve static files.
 
