@@ -23,6 +23,9 @@ export function useBinanceWS({ enabled, symbol, interval, onBar }: UseBinanceWSP
           const msg = JSON.parse(ev.data as string);
           const k = msg?.k;
           if (!k) return;
+          if (localStorage.getItem('debug') === '1') {
+            console.log('[useBinanceWS] raw kline', { symbol, interval, raw: k });
+          }
           const bar = {
             time: Math.floor(k.t / 1000),
             open: +k.o,

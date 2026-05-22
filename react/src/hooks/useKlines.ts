@@ -29,6 +29,9 @@ export function useKlines({ source, symbol, interval, limit = 800, auto = true }
       const res = await fetch(url, { signal });
       if (!res.ok) throw new Error(`Proxy API ${res.status}`);
       const json = (await res.json()) as Bar[];
+      if (localStorage.getItem('debug') === '1') {
+        console.log('[useKlines] raw response', { source, symbol, interval, limit, count: json.length, first: json[0], last: json[json.length - 1], data: json });
+      }
       setData(json);
     } catch (e: any) {
       if (e?.name === 'AbortError') return;
