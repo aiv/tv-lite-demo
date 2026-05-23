@@ -80,8 +80,11 @@ async function fetchYahoo(symbol, interval) {
   if (!r) throw new Error('Yahoo chart empty');
   const ts = r.timestamp || [];
   const q = r.indicators?.quote?.[0] || {};
-  const out = ts.map((t, i) => ({ time: t, open: +q.open[i], high: +q.high[i], low: +q.low[i], close: +q.close[i], volume: +q.volume[i] }));
-  return toBars(out.filter(b => Number.isFinite(b.close)));
+  const out = ts
+    .map((t, i) => ({ time: t, open: q.open?.[i], high: q.high?.[i], low: q.low?.[i], close: q.close?.[i], volume: q.volume?.[i] }))
+    .filter(b => b.close != null && b.open != null && b.high != null && b.low != null)
+    .map(b => ({ time: b.time, open: +b.open, high: +b.high, low: +b.low, close: +b.close, volume: +(b.volume ?? 0) }));
+  return toBars(out.filter(b => Number.isFinite(b.close) && b.close > 0));
 }
 
 const polygonUnitMap = { '1m': 'minute', '5m': 'minute', '15m': 'minute', '1h': 'hour', '4h': 'hour', '1d': 'day' };
