@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata';
+export type Source = 'auto' | 'binance' | 'binanceus' | 'yahoo' | 'polygon' | 'twelvedata' | 'ninjas' | 'fred';
 export type Interval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
 
 const DEFAULT_PRESETS = [
@@ -69,6 +69,8 @@ export const TopBar: React.FC<Props> = (props) => {
         <option value="yahoo">Yahoo</option>
         <option value="polygon">Polygon</option>
         <option value="twelvedata">TwelveData</option>
+        <option value="ninjas">API-Ninjas</option>
+        <option value="fred">FRED</option>
       </select>
 
       <label style={{ opacity: .75, marginLeft: 8, marginRight: 4 }}>Symbol</label>

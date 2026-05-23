@@ -144,12 +144,65 @@ async function fetchTwelveData(symbol, interval) {
   return toBars(bars);
 }
 
+async function fetchNinjas(name) {
+  const key = process.env.APININJAS_API_KEY || '';
+  if (!key) throw new Error('Missing APININJAS_API_KEY');
+  await ensureDir(CACHE_DIR);
+  const slug = name.replace(/[^a-zA-Z0-9]/g, '_');
+  const histFile = path.join(CACHE_DIR, `ninjas_${slug}.json`);
+  let store = { lastFetch: 0, bars: [] };
+  try {
+    const buf = await fsp.readFile(histFile, 'utf8');
+    const parsed = JSON.parse(buf);
+    if (parsed && Array.isArray(parsed.bars)) store = parsed;
+  } catch (_) {}
+  const now = Math.floor(Date.now() / 1000);
+  if (now - store.lastFetch > 60) {
+    const url = `https://api.api-ninjas.com/v1/commodityprice?name=${encodeURIComponent(name)}`;
+    const res = await httpFetch(url, { headers: { 'X-Api-Key': key } });
+    if (!res.ok) throw new Error('API-Ninjas ' + res.status);
+    const json = await res.json();
+    const price = +json.price;
+    const updated = +json.updated || now;
+    if (!Number.isFinite(price)) throw new Error('API-Ninjas: invalid price');
+    store.lastFetch = now;
+    const lastBar = store.bars[store.bars.length - 1];
+    if (!lastBar || lastBar.time < updated) store.bars.push({ time: updated, price });
+    await fsp.writeFile(histFile, JSON.stringify(store)).catch(() => {});
+  }
+  if (store.bars.length === 0) throw new Error('No commodity price data available');
+  return store.bars.map(b => ({ time: b.time, open: b.price, high: b.price, low: b.price, close: b.price, volume: 0 }));
+}
+
+async function fetchFred(seriesId) {
+  const key = process.env.FRED_API_KEY || '';
+  if (!key) throw new Error('Missing FRED_API_KEY');
+  const start = new Date();
+  start.setFullYear(start.getFullYear() - 5);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${encodeURIComponent(seriesId)}&api_key=${encodeURIComponent(key)}&file_type=json&observation_start=${fmt(start)}&sort_order=asc&limit=5000`;
+  const res = await httpFetch(url);
+  if (!res.ok) throw new Error('FRED API ' + res.status);
+  const json = await res.json();
+  const obs = json.observations || [];
+  const bars = obs
+    .filter(o => o.value !== '.')
+    .map(o => { const price = +o.value; const time = Math.floor(new Date(o.date + 'T00:00:00Z').getTime() / 1000); return { time, open: price, high: price, low: price, close: price, volume: 0 }; });
+  if (bars.length === 0) throw new Error('FRED: no observations for ' + seriesId);
+  return bars;
+}
+
 async function handleKlines(req, res, urlObj) {
   try {
     const source = (urlObj.searchParams.get('source') || 'binance').toLowerCase();
     const symbol = urlObj.searchParams.get('symbol') || 'BTCUSDT';
     const interval = urlObj.searchParams.get('interval') || '1d';
     const limit = +(urlObj.searchParams.get('limit') || '800');
+    // Ninjas: manages its own persistent history, bypass standard cache
+    if (source === 'ninjas') {
+      const data = await fetchNinjas(symbol);
+      return sendJson(res, data);
+    }
     const cacheKey = [source, symbol, interval, limit].join('_');
     const cached = await readCache(cacheKey);
     if (cached) return sendJson(res, cached);
@@ -164,6 +217,7 @@ async function handleKlines(req, res, urlObj) {
     }
     else if (source === 'polygon') data = await fetchPolygon(symbol, interval);
     else if (source === 'twelvedata') data = await fetchTwelveData(symbol, interval);
+    else if (source === 'fred') data = await fetchFred(symbol);
     else if (source === 'auto') {
       // Try multiple crypto-friendly providers in order
       const attempts = [

@@ -356,7 +356,7 @@ export const ChartContainer: React.FC = () => {
     if (!v) return;
     const [ns, iv] = v.split('|');
     const [provider, sym] = ns.split(':');
-    const src: Source = provider === 'BINANCE' ? 'binance' : (provider === 'YF' ? 'yahoo' : 'binance');
+    const src: Source = provider === 'BINANCE' ? 'binance' : provider === 'YF' ? 'yahoo' : provider === 'NINJAS' ? 'ninjas' : provider === 'FRED' ? 'fred' : 'binance';
     setSource(src);
     setSymbol(sym);
     setInterval(iv as Interval);
