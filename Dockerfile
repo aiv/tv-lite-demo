@@ -9,8 +9,17 @@ RUN npm ci
 
 COPY . .
 
-# .env is passed as a BuildKit secret — available to Vite during build but never baked into any layer
-RUN --mount=type=secret,id=dotenv,dst=/app/.env npm run build:react
+# VITE_ vars are public (embedded in JS bundle) — pass as ARGs so cache invalidates when they change
+ARG VITE_PRESETS
+ARG VITE_RIGHT_PAD_BARS
+ARG VITE_PRESET_ROTATION_ENABLED
+ARG VITE_PRESET_ROTATION_INTERVAL
+
+# Sensitive server-side keys are still passed via BuildKit secret
+RUN --mount=type=secret,id=dotenv,dst=/app/.env.secret \
+    set -e; \
+    cp /app/.env.secret /app/.env 2>/dev/null || true; \
+    npm run build:react
 
 # ── Stage 2: production runtime ───────────────────────────────
 FROM node:22-alpine

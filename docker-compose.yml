@@ -5,6 +5,11 @@ services:
       dockerfile: Dockerfile
       secrets:
         - dotenv
+      args:
+        VITE_PRESETS: ${VITE_PRESETS}
+        VITE_RIGHT_PAD_BARS: ${VITE_RIGHT_PAD_BARS}
+        VITE_PRESET_ROTATION_ENABLED: ${VITE_PRESET_ROTATION_ENABLED}
+        VITE_PRESET_ROTATION_INTERVAL: ${VITE_PRESET_ROTATION_INTERVAL}
     env_file:
       - .env
     volumes:
