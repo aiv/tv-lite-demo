@@ -308,6 +308,12 @@ async function handleHealth(req, res, urlObj) {
 }
 
 const server = http.createServer(async (req, res) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '-';
+    log(`${ip} "${req.method} ${req.url}" ${res.statusCode} ${ms}ms`);
+  });
   try {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     if (urlObj.pathname.startsWith('/api/klines')) {
