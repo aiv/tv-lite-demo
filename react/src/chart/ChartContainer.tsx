@@ -407,6 +407,11 @@ export const ChartContainer: React.FC = () => {
           ⚠ No connection to data stream — chart updates paused
         </div>
       )}
+      {!backendOffline && !wsDisconnected && error && (
+        <div className="connection-banner">
+          ⚠ Source error — {error}
+        </div>
+      )}
 
       <div ref={hostRef} className="chart-host">
         {legendData && (
